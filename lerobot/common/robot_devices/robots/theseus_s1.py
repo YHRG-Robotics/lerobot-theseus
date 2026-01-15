@@ -174,7 +174,7 @@ class Theseus_S1Robot:
             before_fread_t = time.perf_counter()
             self.follower_arms[name].refresh()
             follower_pos[name] = self.follower_arms[name].get_pos()
-            follower_pos[name] = torch.from_numpy(follower_pos[name])
+            follower_pos[name] = torch.from_numpy(follower_pos[name], dtype=torch.float32)
             # self.logs[f"read_follower_{name}_pos_dt_s"] = time.perf_counter() - before_fread_t
 
         # Create state by concatenating follower current position
@@ -254,7 +254,7 @@ class Theseus_S1Robot:
         for name in self.leader_arms:
             before_lread_t = time.perf_counter()
             self.leader_arms[name].refresh()
-            leader_pos[name] = self.leader_arms[name].get_pos()
+            leader_pos[name] = self.leader_arms[name].get_pos().astype(np.float32)
             self.leader_arms[name].gravity()
             leader_pos[name] = torch.from_numpy(leader_pos[name])
             # self.logs[f"read_leader_{name}_pos_dt_s"] = time.perf_counter() - before_lread_t
@@ -292,7 +292,7 @@ class Theseus_S1Robot:
         for name in self.follower_arms:
             before_fread_t = time.perf_counter()
             self.follower_arms[name].refresh()
-            follower_pos[name] = self.follower_arms[name].get_pos()
+            follower_pos[name] = self.follower_arms[name].get_pos().astype(np.float32)
             follower_pos[name] = torch.from_numpy(follower_pos[name])
             # self.logs[f"read_follower_{name}_pos_dt_s"] = time.perf_counter() - before_fread_t
 
