@@ -22,7 +22,7 @@ import zmq
 
 from lerobot.common.robot_devices.cameras.utils import make_cameras_from_configs
 from lerobot.common.robot_devices.robots.utils import get_arm_id
-from lerobot.common.robot_devices.utils import RobotDeviceNotConnectedError
+from lerobot.common.robot_devices.utils import RobotDeviceAlreadyConnectedError, RobotDeviceNotConnectedError
 
 from lerobot.common.robot_devices.robots.configs import Theseus_S1RobotConfig
 from lerobot.common.robot_devices.robots.theseus import make_s1_arm_from_configs
@@ -136,6 +136,32 @@ class Theseus_S1Robot:
         for name in self.follower_arms:
             available.append(get_arm_id(name, "follower"))
         return available
+    
+    def connect(self):
+        if self.is_connected:
+            raise RobotDeviceAlreadyConnectedError(
+                "ManipulatorRobot is already connected. Do not run `robot.connect()` twice."
+            )
+
+        if not self.leader_arms and not self.follower_arms and not self.cameras:
+            raise ValueError(
+                "ManipulatorRobot doesn't have any device to connect. See example of usage in docstring of the class."
+            )
+
+    
+        # Check both arms can be read
+        for name in self.follower_arms:
+            self.follower_arms[name].refresh()
+            self.follower_arms[name].get_pos()
+        for name in self.leader_arms:
+            self.leader_arms[name].refresh()
+            self.leader_arms[name].get_pos()
+
+        # Connect the cameras
+        for name in self.cameras:
+            self.cameras[name].connect()
+
+        self.is_connected = True
     
     def capture_observation(self):
         if not self.is_connected:
