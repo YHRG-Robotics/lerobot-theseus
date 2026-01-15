@@ -687,19 +687,29 @@ class TheseusManipulatorRobotConfig(RobotConfig):
 class Theseus_S1RobotConfig(TheseusManipulatorRobotConfig):
     leader_arms: dict[str, ArmConfig] = field(
         default_factory=lambda: {
-            "main": S1ArmConfig(
+            "part1": S1ArmConfig(
                 mode="only_real",
                 dev="PCAN_USBBUS1",
                 end_effector="teach"
             ),
+            "part2": S1ArmConfig(
+                mode="only_real",
+                dev="PCAN_USBBUS2",
+                end_effector="teach"
+            )
         }
     )
 
     follower_arms: dict[str, ArmConfig] = field(
         default_factory=lambda: {
-            "main": S1ArmConfig(
+            "part1": S1ArmConfig(
                 mode="only_real",
-                dev="PCAN_USBBUS2",
+                dev="PCAN_USBBUS3",
+                end_effector="gripper"
+            ),
+            "part2": S1ArmConfig(
+                mode="only_real",
+                dev="PCAN_USBBUS4",
                 end_effector="gripper"
             ),
         }
@@ -707,8 +717,15 @@ class Theseus_S1RobotConfig(TheseusManipulatorRobotConfig):
 
     cameras: dict[str, CameraConfig] = field(
         default_factory=lambda: {
-            "front": OpenCVCameraConfig(
+            "left": OpenCVCameraConfig(
                 camera_index=1, fps=30, width=640, height=480, rotation=90
             ),
+            "right": OpenCVCameraConfig(
+                camera_index=1, fps=30, width=640, height=480, rotation=90
+            ),
+            "middle": OpenCVCameraConfig(
+                camera_index=2, fps=30, width=640, height=480, rotation=90
+            ),
+            
         }
     )

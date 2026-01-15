@@ -19,7 +19,7 @@ class S1ArmConfig(ArmConfig):
     end_effector: str
 
 
-def make_s1_arm_from_configs(arm_config: S1ArmConfig) -> S1_arm:
+def make_s1_arm_from_configs(arm_config: S1ArmConfig, arm_name: str) -> S1_arm:
     control_dict = {
         "only_real": control_mode.only_real,
         "only_sim": control_mode.only_sim,
@@ -27,8 +27,8 @@ def make_s1_arm_from_configs(arm_config: S1ArmConfig) -> S1_arm:
     
     # print(f"Creating S1 arm with config: {[arm_config['main'].keys()]}")
     return S1_arm(
-        mode=control_dict[arm_config['main'].mode],
-        dev=arm_config['main'].dev,
-        end_effector=arm_config['main'].end_effector,
+        mode=control_dict[arm_config[arm_name].mode],
+        dev=arm_config[arm_name].dev,
+        end_effector=arm_config[arm_name].end_effector,
         arm_version="V1"
     )

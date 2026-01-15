@@ -76,14 +76,10 @@ class Theseus_S1Robot:
     def __init__(self, config: Theseus_S1RobotConfig):
         self.robot_type = config.type
         self.config = config
-        self.arm_counter = 0
-        self.leader_arms = {}
-        self.follower_arms = {}
-        for arm_name in self.config.leader_arms.keys():
-            self.leader_arms[arm_name] = make_s1_arm_from_configs(self.config.leader_arms,arm_name)
-            self.follower_arms[arm_name] = make_s1_arm_from_configs(self.config.follower_arms,arm_name)
-            print(f"Created arm: {arm_name},{self.arm_counter}")
-            self.arm_counter += 1
+        self.leader_arms = {"leader":make_s1_arm_from_configs(self.config.leader_arms),
+                            "leader2":make_s1_arm_from_configs(self.config.leader_arms)}
+        self.follower_arms = {"follow":make_s1_arm_from_configs(self.config.follower_arms),
+                              "follow2":make_s1_arm_from_configs(self.config.follower_arms)}
         self.cameras = make_cameras_from_configs(self.config.cameras)
 
         self.is_connected = False
@@ -104,19 +100,15 @@ class Theseus_S1Robot:
     
     @property
     def motor_features(self) -> dict:
-        follower_arm_names = []
-        for i in range(self.arm_counter):
-            template = [
-                f"waist_{i}",
-                f"shouldert_{i}",
-                f"elbow_{i}",
-                f"forearm_roll_{i}",
-                f"wrist_angle_{i}",
-                f"wrist_rotate_{i}",
-                f"gripper_{i}",
-            ]
-            follower_arm_names.extend(template)
-            # print(f"Created motor: {follower_arm_names}")
+        follower_arm_names = [
+            "waist",
+            "shouldert",
+            "elbow",
+            "forearm_roll",
+            "wrist_angle",
+            "wrist_rotate",
+            "gripper",
+        ]
         return {
             "action": {
                 "dtype": "float32",
@@ -165,11 +157,10 @@ class Theseus_S1Robot:
             self.follower_arms[name].refresh()
             self.follower_arms[name].get_pos()
             self.follower_arms[name].enable()
-        # for name in self.leader_arms:
+        for name in self.leader_arms:
             self.leader_arms[name].refresh()
             self.leader_arms[name].get_pos()
             self.leader_arms[name].enable()
-        print(f"Connected leader arm: {self.follower_arms},{self.leader_arms}")
 
         # Connect the cameras
         for name in self.cameras:
@@ -231,8 +222,7 @@ class Theseus_S1Robot:
         action_sent = []
         for name in self.follower_arms:
             # Get goal position of each follower arm by splitting the action vector
-            to_idx += len(self.follower_arms[name].motor.motors)
-            # len(self.follower_arms[name].motor_names)
+            to_idx += len(self.follower_arms["follow"].motor_names)
             goal_pos = action[from_idx:to_idx]
             from_idx = to_idx
 
@@ -276,7 +266,7 @@ class Theseus_S1Robot:
         for name in self.follower_arms:
             before_fwrite_t = time.perf_counter()
             # leader_pos["leader"].refresh()
-            goal_pos = leader_pos[name]
+            goal_pos = leader_pos["leader"]
 
             # Cap goal position when too far away from present position.
             # Slower fps expected due to reading from the follower.
