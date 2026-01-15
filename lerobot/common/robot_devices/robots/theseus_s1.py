@@ -68,7 +68,7 @@ def move_arm_linear_to_target(arm: S1_arm,steps: int = 30,sleep_time: float = 0.
     trajectory = np.linspace(current_joints, target_joints, steps)
 
     for i, joints in enumerate(trajectory):
-        arm.joint_control(joints.tolist())
+        arm.joint_control_mit(joints.tolist())
         time.sleep(sleep_time)
 
 
@@ -76,8 +76,8 @@ class Theseus_S1Robot:
     def __init__(self, config: Theseus_S1RobotConfig):
         self.robot_type = config.type
         self.config = config
-        self.leader_arms = make_s1_arm_from_configs(self.config.leader_arms)
-        self.follower_arms = make_s1_arm_from_configs(self.config.follower_arms)
+        self.leader_arms = {"leader":make_s1_arm_from_configs(self.config.leader_arms)}
+        self.follower_arms = {"follow":make_s1_arm_from_configs(self.config.follower_arms)}
         self.cameras = make_cameras_from_configs(self.config.cameras)
 
         self.is_connected = False
@@ -150,12 +150,15 @@ class Theseus_S1Robot:
 
     
         # Check both arms can be read
+
         for name in self.follower_arms:
             self.follower_arms[name].refresh()
             self.follower_arms[name].get_pos()
+            self.follower_arms[name].enable()
         for name in self.leader_arms:
             self.leader_arms[name].refresh()
             self.leader_arms[name].get_pos()
+            self.leader_arms[name].enable()
 
         # Connect the cameras
         for name in self.cameras:
@@ -186,8 +189,8 @@ class Theseus_S1Robot:
             before_camread_t = time.perf_counter()
             images[name] = self.cameras[name].async_read()
             images[name] = torch.from_numpy(images[name])
-            self.logs[f"read_camera_{name}_dt_s"] = self.cameras[name].logs["delta_timestamp_s"]
-            self.logs[f"async_read_camera_{name}_dt_s"] = time.perf_counter() - before_camread_t
+            # self.logs[f"read_camera_{name}_dt_s"] = self.cameras[name].logs["delta_timestamp_s"]
+            # self.logs[f"async_read_camera_{name}_dt_s"] = time.perf_counter() - before_camread_t
 
         # Populate output dictionaries and format to pytorch
         obs_dict = {}
@@ -223,17 +226,17 @@ class Theseus_S1Robot:
 
             # Cap goal position when too far away from present position.
             # Slower fps expected due to reading from the follower.
-            if self.config.max_relative_target is not None:
-                present_pos = self.follower_arms[name].read("Present_Position")
-                present_pos = torch.from_numpy(present_pos)
-                goal_pos = ensure_safe_goal_position(goal_pos, present_pos, self.config.max_relative_target)
+            # if self.config.max_relative_target is not None:
+            #     present_pos = self.follower_arms[name].read("Present_Position")
+            #     present_pos = torch.from_numpy(present_pos)
+            #     goal_pos = ensure_safe_goal_position(goal_pos, present_pos, self.config.max_relative_target)
 
             # Save tensor to concat and return
             action_sent.append(goal_pos)
 
             # Send goal position to each follower
             goal_pos = goal_pos.numpy().astype(np.float32)
-            self.follower_arms[name].write("Goal_Position", goal_pos)
+            self.follower_arms[name].joint_control_mit( goal_pos)
 
         return torch.cat(action_sent)
 
@@ -252,6 +255,7 @@ class Theseus_S1Robot:
             before_lread_t = time.perf_counter()
             self.leader_arms[name].refresh()
             leader_pos[name] = self.leader_arms[name].get_pos()
+            self.leader_arms[name].gravity()
             leader_pos[name] = torch.from_numpy(leader_pos[name])
             # self.logs[f"read_leader_{name}_pos_dt_s"] = time.perf_counter() - before_lread_t
 
@@ -259,21 +263,23 @@ class Theseus_S1Robot:
         follower_goal_pos = {}
         for name in self.follower_arms:
             before_fwrite_t = time.perf_counter()
-            goal_pos = leader_pos[name]
+            # leader_pos["leader"].refresh()
+            goal_pos = leader_pos["leader"]
 
             # Cap goal position when too far away from present position.
             # Slower fps expected due to reading from the follower.
-            if self.config.max_relative_target is not None:
-                self.follower_arms[name].refresh()
-                present_pos = self.follower_arms[name].get_pos()
-                present_pos = torch.from_numpy(present_pos)
-                goal_pos = ensure_safe_goal_position(goal_pos, present_pos, self.config.max_relative_target)
+            # if self.config.max_relative_target is not None:
+            #     self.follower_arms[name].refresh()
+            #     present_pos = self.follower_arms[name].get_pos()
+            #     present_pos = torch.from_numpy(present_pos)
+            #     goal_pos = ensure_safe_goal_position(goal_pos, present_pos, self.config.max_relative_target)
 
             # Used when record_data=True
             follower_goal_pos[name] = goal_pos
 
             goal_pos = goal_pos.numpy().astype(np.float32)
-            self.follower_arms[name].write("Goal_Position", goal_pos)
+            self.follower_arms[name].joint_control_mit( goal_pos)
+            self.follower_arms[name].control_gripper(goal_pos[-1],0.1)
             # self.logs[f"write_follower_{name}_goal_pos_dt_s"] = time.perf_counter() - before_fwrite_t
 
         # Early exit when recording data is not requested

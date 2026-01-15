@@ -689,7 +689,7 @@ class Theseus_S1RobotConfig(TheseusManipulatorRobotConfig):
         default_factory=lambda: {
             "main": S1ArmConfig(
                 mode="only_real",
-                dev="can0",
+                dev="PCAN_USBBUS1",
                 end_effector="teach"
             ),
         }
@@ -699,7 +699,7 @@ class Theseus_S1RobotConfig(TheseusManipulatorRobotConfig):
         default_factory=lambda: {
             "main": S1ArmConfig(
                 mode="only_real",
-                dev="can1",
+                dev="PCAN_USBBUS2",
                 end_effector="gripper"
             ),
         }
