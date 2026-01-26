@@ -46,7 +46,7 @@ classifiers = [
 ]
 dependencies = [
     "urdfpy>=0.0.4",
-    "S1_SDK @ git+http://git.sylas.site:8081/Theseus/S1_SDK@main",
+    "S1_SDK @ git+https://github.com/YHRG-Robotics/S1_SDK@main",
     "cmake>=3.29.0.1",
     "datasets>=2.19.0",
     "deepdiff>=7.0.1",
