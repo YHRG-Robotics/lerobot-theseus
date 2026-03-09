@@ -30,5 +30,5 @@ def make_s1_arm_from_configs(arm_config: S1ArmConfig, arm_name: str) -> S1_arm:
         mode=control_dict[arm_config[arm_name].mode],
         dev=arm_config[arm_name].dev,
         end_effector=arm_config[arm_name].end_effector,
-        arm_version="V1"
+        arm_version=arm_config[arm_name].version,
     )

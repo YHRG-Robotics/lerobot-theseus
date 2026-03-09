@@ -690,12 +690,14 @@ class Theseus_S1RobotConfig(TheseusManipulatorRobotConfig):
             "part1": S1ArmConfig(
                 mode="only_real",
                 dev="PCAN_USBBUS1",
-                end_effector="teach"
+                end_effector="teach",
+                version="V1",
             ),
             "part2": S1ArmConfig(
                 mode="only_real",
                 dev="PCAN_USBBUS2",
-                end_effector="teach"
+                end_effector="teach",
+                version="V1",
             )
         }
     )
@@ -705,12 +707,14 @@ class Theseus_S1RobotConfig(TheseusManipulatorRobotConfig):
             "part1": S1ArmConfig(
                 mode="only_real",
                 dev="PCAN_USBBUS3",
-                end_effector="gripper"
+                end_effector="gripper",
+                version="V1",
             ),
             "part2": S1ArmConfig(
                 mode="only_real",
                 dev="PCAN_USBBUS4",
-                end_effector="gripper"
+                end_effector="gripper",
+                version="V1",
             ),
         }
     )
