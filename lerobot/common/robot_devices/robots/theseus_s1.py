@@ -68,7 +68,7 @@ def move_arm_linear_to_target(arm: S1_arm,steps: int = 30,sleep_time: float = 0.
     trajectory = np.linspace(current_joints, target_joints, steps)
 
     for i, joints in enumerate(trajectory):
-        arm.joint_control_mit(joints.tolist())
+        arm.joint_control_mit(joints.tolist()[:6])
         time.sleep(sleep_time)
 
 
@@ -248,7 +248,7 @@ class Theseus_S1Robot:
 
             # Send goal position to each follower
             goal_pos = goal_pos.numpy().astype(np.float32)
-            self.follower_arms[name].joint_control_mit( goal_pos)
+            self.follower_arms[name].joint_control_mit(goal_pos[:6])
 
         return torch.cat(action_sent)
 
@@ -290,7 +290,7 @@ class Theseus_S1Robot:
             follower_goal_pos[name] = goal_pos
 
             goal_pos = goal_pos.numpy().astype(np.float32)
-            self.follower_arms[name].joint_control_mit( goal_pos)
+            self.follower_arms[name].joint_control_mit(goal_pos[:6])
             self.follower_arms[name].control_gripper(goal_pos[-1],0.1)
             # self.logs[f"write_follower_{name}_goal_pos_dt_s"] = time.perf_counter() - before_fwrite_t
 
