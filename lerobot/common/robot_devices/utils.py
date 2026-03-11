@@ -36,10 +36,11 @@ def safe_disconnect(func):
     def wrapper(robot, *args, **kwargs):
         try:
             return func(robot, *args, **kwargs)
-        except Exception as e:
+        except (Exception, KeyboardInterrupt, SystemExit):
+            raise
+        finally:
             if robot.is_connected:
                 robot.disconnect()
-            raise e
 
     return wrapper
 

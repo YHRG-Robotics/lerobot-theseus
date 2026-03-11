@@ -185,7 +185,7 @@ class Theseus_S1Robot:
             before_fread_t = time.perf_counter()
             self.follower_arms[name].refresh()
             follower_pos[name] = self.follower_arms[name].get_pos()
-            follower_pos[name] = torch.from_numpy(follower_pos[name], dtype=torch.float32)
+            follower_pos[name] = torch.from_numpy(follower_pos[name]).to(torch.float32)
             # self.logs[f"read_follower_{name}_pos_dt_s"] = time.perf_counter() - before_fread_t
 
         # Create state by concatenating follower current position
@@ -249,6 +249,7 @@ class Theseus_S1Robot:
             # Send goal position to each follower
             goal_pos = goal_pos.numpy().astype(np.float32)
             self.follower_arms[name].joint_control_mit(goal_pos[:6])
+            self.follower_arms[name].control_gripper(goal_pos[-1], 0.1)
 
         return torch.cat(action_sent)
 
@@ -351,7 +352,8 @@ class Theseus_S1Robot:
             self.follower_arms[name].disable()
 
         for name in self.leader_arms:
-            move_arm_linear_to_target(self.leader_arms[name],steps=100,sleep_time=0.02)
+            # leader臂直接断电，防止读取过时的缓冲区位置信息造成危险
+            # move_arm_linear_to_target(self.leader_arms[name],steps=100,sleep_time=0.02)
             self.leader_arms[name].disable()
 
         for name in self.cameras:
