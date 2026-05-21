@@ -249,7 +249,7 @@ class Theseus_S1Robot:
             # Send goal position to each follower
             goal_pos = goal_pos.numpy().astype(np.float32)
             self.follower_arms[name].joint_control_mit(goal_pos[:6])
-            self.follower_arms[name].control_gripper(goal_pos[-1], 0.1)
+            self.follower_arms[name].control_gripper(goal_pos[-1], 0.5)
 
         return torch.cat(action_sent)
 
